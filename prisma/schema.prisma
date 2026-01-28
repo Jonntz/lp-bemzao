@@ -1,37 +1,19 @@
+// prisma/schema.prisma
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-}
-
-model Campaign {
-  id        Int      @id @default(autoincrement())
-  name      String
-  slug      String   @unique // ex: 'black-friday', 'google-ads'
-  leads     Lead[]
-  createdAt DateTime @default(now())
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Lead {
-  id        Int      @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String   @unique
-  phone     String
-
-  // Endereço
-  cep       String
-  street    String
-  number    String
-  city      String
-  state     String
-
-  // Relação com Campanha
-  campaignId Int
-  campaign   Campaign @relation(fields: [campaignId], references: [id])
-
-  createdAt DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  firstName       String
+  lastName        String
+  email           String   @unique
+  phone           String
+  wordpressPostId String?
+  createdAt       DateTime @default(now())
 }

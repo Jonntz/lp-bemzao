@@ -1,8 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+  /* Mova para a raiz aqui: */
+  serverExternalPackages: ['@prisma/client'],
+
+  experimental: {
+    // reactCompiler geralmente fica dentro de experimental, verifique se não precisa mover para cá também se der erro
+    // reactCompiler: true,
+  },
+
+  // Nota: Se 'reactCompiler' der erro na raiz, mova-o para dentro de 'experimental' acima.
+  // Nas versões mais recentes, ele costuma ser ativado via experimental.reactCompiler: boolean
+
   images: {
     remotePatterns: [
       {
@@ -11,7 +20,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'i.pravatar.cc', // Adicionei este também pois usei nos avatares
+        hostname: 'i.pravatar.cc',
+      },
+
+      {
+        protocol: 'https',
+        hostname: 'bemzao.com',
       },
     ],
   },

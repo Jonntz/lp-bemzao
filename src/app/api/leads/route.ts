@@ -5,9 +5,8 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { firstName, lastName, email, phone, cep, street, number, city, state, campaignId } = body;
+        const { firstName, lastName, email, phone, wordpressPostId } = body;
 
-        // Validação básica de unicidade
         const existingLead = await prisma.lead.findUnique({
             where: { email },
         });
@@ -16,12 +15,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Este e-mail já está cadastrado." }, { status: 409 });
         }
 
-        // Criação do Lead
         const lead = await prisma.lead.create({
             data: {
-                firstName, lastName, email, phone,
-                cep, street, number, city, state,
-                campaignId: Number(campaignId) // Assumindo ID numérico
+                firstName,
+                lastName,
+                email,
+                phone,
+                wordpressPostId
             }
         });
 
@@ -32,17 +32,11 @@ export async function POST(req: Request) {
     }
 }
 
-// GET: Listar Leads (Com filtro)
-export async function GET(req: Request) {
-    const { searchParams } = new URL(req.url);
-    const campaignId = searchParams.get('campaignId');
-
-    const where = campaignId ? { campaignId: Number(campaignId) } : {};
-
+// GET: Listar Leads
+export async function GET() {
+    // REMOVI A LÓGICA DE CAMPANHA POIS O CAMPO FOI REMOVIDO DO MODEL
     try {
         const leads = await prisma.lead.findMany({
-            where,
-            include: { campaign: true },
             orderBy: { createdAt: 'desc' }
         });
         return NextResponse.json(leads);
