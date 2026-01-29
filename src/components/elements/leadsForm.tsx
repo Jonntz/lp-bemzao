@@ -59,6 +59,7 @@ export function LeadForm() {
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     setPosts(data);
+                    console.log("Posts do WordPress carregados:", data);
                 }
             } catch (error) {
                 console.error("Erro ao buscar posts do WP:", error);
@@ -169,7 +170,7 @@ export function LeadForm() {
                         </SelectTrigger>
                         <SelectContent>
                             {posts.map((post) => (
-                                <SelectItem key={post.id} value={String(post.id)}>
+                                <SelectItem key={post.id} value={String(post.title.rendered)}>
                                     <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                 </SelectItem>
                             ))}
