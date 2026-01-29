@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"; // Import do Input
 import { Button } from "@/components/ui/button"; // Import do Button
 import { toast } from "sonner";
 import { Download, Search, Filter } from "lucide-react"; // Ícones para UX
+import { logoutAction } from "@/app/actions";
+import { LogOut } from "lucide-react"; // Se quiser ícone
 
 interface Lead {
     id: number;
@@ -39,6 +41,10 @@ export default function AdminPage() {
     // Estados para filtros
     const [campaignFilter, setCampaignFilter] = useState("all");
     const [phoneFilter, setPhoneFilter] = useState("");
+
+    const handleLogout = async () => {
+        await logoutAction(); // Server Action cuida do redirect
+    };
 
     // 1. Buscar Leads (Traz todos para filtrar no front)
     const fetchLeads = async () => {
@@ -138,6 +144,13 @@ export default function AdminPage() {
 
     return (
         <div className="p-8 min-h-screen bg-gray-50">
+            <Button
+                variant="destructive"
+                onClick={handleLogout}
+                className="float-right mb-4 mr-10"
+            >
+                <LogOut size={16} /> Sair
+            </Button>
             <Card className="max-w-7xl mx-auto shadow-md">
                 <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -150,6 +163,8 @@ export default function AdminPage() {
                             <Download size={16} />
                             Exportar Excel ({filteredLeads.length})
                         </Button>
+
+
                     </div>
 
                     {/* Área de Filtros */}
