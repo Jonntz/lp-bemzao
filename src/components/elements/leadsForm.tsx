@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { SuccessModal } from "./successModal";
 
-// URL do seu site WordPress
 const WORDPRESS_API_URL = "https://bemzao.com/wp-json/wp/v2/posts";
 
 interface WordPressPost {
@@ -29,6 +29,9 @@ const formSchema = z.object({
     email: z.string().email("E-mail inválido"),
     phone: z.string().min(14, "Telefone incompleto").max(15, "Telefone inválido"),
     wordpressPostId: z.string().optional(),
+    isOver18: z.literal(true, {
+        message: "Você precisa confirmar que é maior de 18 anos.",
+    }),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -36,6 +39,9 @@ type FormData = z.infer<typeof formSchema>;
 export function LeadForm() {
     const [posts, setPosts] = useState<WordPressPost[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(false);
+
+    // Estado simples apenas para controlar se o modal está visível
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const {
         register,
@@ -47,7 +53,8 @@ export function LeadForm() {
         resolver: zodResolver(formSchema),
         defaultValues: {
             firstName: "", lastName: "", email: "", phone: "",
-            wordpressPostId: ""
+            wordpressPostId: "",
+            isOver18: true,
         }
     });
 
@@ -59,11 +66,9 @@ export function LeadForm() {
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     setPosts(data);
-                    console.log("Posts do WordPress carregados:", data);
                 }
             } catch (error) {
                 console.error("Erro ao buscar posts do WP:", error);
-                toast.error("Não foi possível carregar a lista de artigos.");
             } finally {
                 setLoadingPosts(false);
             }
@@ -78,7 +83,6 @@ export function LeadForm() {
             .replace(/(-\d{4})(\d+?)/, '$1');
     }
 
-
     const onSubmit = async (data: FormData) => {
         try {
             const res = await fetch('/api/leads', {
@@ -89,10 +93,9 @@ export function LeadForm() {
 
             if (!res.ok) throw new Error(responseData.message || "Erro desconhecido");
 
-            toast.success("Cadastro realizado com sucesso!", {
-                description: "Nossa equipe entrará em contato em breve.",
-            });
             reset();
+            setShowSuccessModal(true); // Ativa o modal isolado
+
         } catch (error: any) {
             toast.error("Erro ao cadastrar", { description: error.message });
         }
@@ -161,7 +164,6 @@ export function LeadForm() {
                     {errors.phone && <span className="text-red-500 text-xs">{errors.phone.message}</span>}
                 </div>
 
-                {/* --- SELECT DO WORDPRESS --- */}
                 <div className="space-y-2">
                     <Label>Interesse em qual campanha? (Opcional)</Label>
                     <Select onValueChange={(val) => setValue("wordpressPostId", val)}>
@@ -170,7 +172,7 @@ export function LeadForm() {
                         </SelectTrigger>
                         <SelectContent>
                             {posts.map((post) => (
-                                <SelectItem key={post.id} value={String(post.title.rendered)}>
+                                <SelectItem key={post.id} value={String(post.id)}>
                                     <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                 </SelectItem>
                             ))}
@@ -181,10 +183,43 @@ export function LeadForm() {
                     </Select>
                 </div>
 
+                <div className="pt-2">
+                    <div className="flex items-start space-x-3">
+                        <input
+                            type="checkbox"
+                            id="isOver18"
+                            {...register("isOver18")}
+                            className="mt-1 h-4 w-4 rounded border-gray-300 text-[var(--ast-color-0)] focus:ring-[var(--ast-color-0)] cursor-pointer accent-[var(--ast-color-0)]"
+                        />
+                        <div className="grid gap-1.5 leading-none">
+                            <label
+                                htmlFor="isOver18"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-gray-700"
+                            >
+                                Sou maior de 18 anos e concordo com os termos.
+                            </label>
+                            <p className="text-xs text-muted-foreground">
+                                É necessário ser maior de idade para participar.
+                            </p>
+                        </div>
+                    </div>
+                    {errors.isOver18 && (
+                        <p className="text-red-500 text-xs mt-1 ml-7">
+                            {errors.isOver18.message}
+                        </p>
+                    )}
+                </div>
+
                 <Button type="submit" disabled={isSubmitting} className="w-full bg-[var(--ast-color-0)] hover:bg-[var(--ast-color-1)] text-white font-bold h-12 text-lg mt-4">
                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Confirmar Inscrição Gratuita"}
                 </Button>
             </form>
+
+            {/* --- COMPONENTE SEPARADO AQUI --- */}
+            <SuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+            />
         </div>
     );
 }
