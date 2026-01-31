@@ -1,6 +1,7 @@
-# 1. Base image (Atualizado para Node 20)
+# 1. Base image
 FROM node:20-alpine AS base
 
+# Dependências do sistema (OpenSSL)
 RUN apk add --no-cache libc6-compat openssl
 
 # 2. Dependencies
@@ -15,10 +16,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Desativa telemetria para o build ser mais rápido
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Agora o generate vai detectar o OpenSSL 3.0 corretamente
+# Gera o cliente do prisma
 RUN npx prisma generate
 RUN npm install -g pnpm && pnpm run build
 
@@ -33,9 +33,12 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 
-# Copia apenas o necessário do modo standalone
+# Copia o standalone (app)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# --- LINHA NOVA: Copia a pasta prisma para ter o schema.prisma ---
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 USER nextjs
 
