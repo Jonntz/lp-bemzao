@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* Mova para a raiz aqui: */
-  serverExternalPackages: ['@prisma/client'],
+  serverExternalPackages: ['@prisma/client', 'jose'],
+  output: 'standalone',
 
   experimental: {
     // reactCompiler geralmente fica dentro de experimental, verifique se não precisa mover para cá também se der erro

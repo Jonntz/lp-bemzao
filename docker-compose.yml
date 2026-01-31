@@ -1,6 +1,23 @@
 version: '3.8'
 
 services:
+  app:
+    container_name: bemzao-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "mysql://admin:password123@db:3306/bemzao_db"
+      ADMIN_PASSWORD: "PauloBemzao123" # Defina sua senha de acesso ao painel
+      JWT_SECRET: "digite_varias_letras_aleatorias_aqui_para_ser_sua_chave_secreta" # Defina um hash longo aqui
+    depends_on:
+      - db
+    networks:
+      - app-network
+
   db:
     image: mysql:8.0
     container_name: bemzao_mysql
@@ -14,6 +31,12 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   mysql_data:
