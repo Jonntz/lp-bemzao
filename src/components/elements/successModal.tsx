@@ -9,12 +9,13 @@ interface SuccessModalProps {
     onClose: () => void;
 }
 
-const WHATSAPP_LINK = "https://chat.whatsapp.com/CGyPoxRigK6KF2HgC7E1Rf";
+const WHATSAPP_LINK = "https://chat.whatsapp.com/IpzrdvbpazLJF4K11A9FVj";
 
 export function SuccessModal({ isOpen, onClose }: SuccessModalProps) {
 
     const handleWhatsAppRedirect = () => {
         window.open(WHATSAPP_LINK, "_blank");
+        window.location.href = "https://bemzao.com/";
         onClose();
     };
 
