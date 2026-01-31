@@ -1,8 +1,11 @@
-# 1. Base image
-FROM node:18-alpine AS base
+# 1. Base image (Atualizado para Node 20)
+FROM node:20-alpine AS base
 
 # 2. Dependencies
 FROM base AS deps
+# Instala OpenSSL e compatibilidade necessária para o Prisma no Alpine Linux
+RUN apk add --no-cache libc6-compat openssl
+
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 RUN npm install -g pnpm && pnpm i --frozen-lockfile
@@ -12,7 +15,11 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Gera o cliente do prisma antes do build
+
+# Desativa telemetria para o build ser mais rápido
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Gera o cliente do prisma
 RUN npx prisma generate
 RUN npm install -g pnpm && pnpm run build
 
@@ -20,6 +27,7 @@ RUN npm install -g pnpm && pnpm run build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
