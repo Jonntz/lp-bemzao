@@ -1,11 +1,10 @@
 # 1. Base image (Atualizado para Node 20)
 FROM node:20-alpine AS base
 
-# 2. Dependencies
-FROM base AS deps
-# Instala OpenSSL e compatibilidade necessária para o Prisma no Alpine Linux
 RUN apk add --no-cache libc6-compat openssl
 
+# 2. Dependencies
+FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 RUN npm install -g pnpm && pnpm i --frozen-lockfile
@@ -19,7 +18,7 @@ COPY . .
 # Desativa telemetria para o build ser mais rápido
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Gera o cliente do prisma
+# Agora o generate vai detectar o OpenSSL 3.0 corretamente
 RUN npx prisma generate
 RUN npm install -g pnpm && pnpm run build
 
