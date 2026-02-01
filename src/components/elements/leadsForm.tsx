@@ -29,7 +29,10 @@ const formSchema = z.object({
     email: z.string().email("E-mail inválido"),
     phone: z.string().min(14, "Telefone incompleto").max(15, "Telefone inválido"),
     wordpressPostId: z.string().optional(),
-    isOver18: z.literal(true, {
+
+    // CORREÇÃO AQUI: Trocamos z.literal por z.boolean().refine()
+    // Isso evita o erro de tipagem e garante que só passa se for true.
+    isOver18: z.boolean().refine((val) => val === true, {
         message: "Você precisa confirmar que é maior de 18 anos.",
     }),
 });
@@ -39,8 +42,6 @@ type FormData = z.infer<typeof formSchema>;
 export function LeadForm() {
     const [posts, setPosts] = useState<WordPressPost[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(false);
-
-    // Estado simples apenas para controlar se o modal está visível
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const {
@@ -54,7 +55,7 @@ export function LeadForm() {
         defaultValues: {
             firstName: "", lastName: "", email: "", phone: "",
             wordpressPostId: "",
-            isOver18: true,
+            isOver18: false,
         }
     });
 
@@ -83,6 +84,12 @@ export function LeadForm() {
             .replace(/(-\d{4})(\d+?)/, '$1');
     }
 
+    const getCleanTitle = (html: string) => {
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        return div.textContent || div.innerText || "";
+    };
+
     const onSubmit = async (data: FormData) => {
         try {
             const res = await fetch('/api/leads', {
@@ -94,7 +101,7 @@ export function LeadForm() {
             if (!res.ok) throw new Error(responseData.message || "Erro desconhecido");
 
             reset();
-            setShowSuccessModal(true); // Ativa o modal isolado
+            setShowSuccessModal(true);
 
         } catch (error: any) {
             toast.error("Erro ao cadastrar", { description: error.message });
@@ -103,7 +110,7 @@ export function LeadForm() {
 
     return (
         <div className="w-full">
-            <div className="mb-6 text-center uppercase">
+            <div className="mb-6">
                 <div className="text-2xl font-bold text-[var(--ast-color-0)]">
                     Garanta sua doação agora
                 </div>
@@ -171,11 +178,14 @@ export function LeadForm() {
                             <SelectValue placeholder={loadingPosts ? "Carregando campanhas..." : "Selecione uma campanha..."} />
                         </SelectTrigger>
                         <SelectContent>
-                            {posts.map((post) => (
-                                <SelectItem key={post.id} value={String(post.id)}>
-                                    <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-                                </SelectItem>
-                            ))}
+                            {posts.map((post) => {
+                                const cleanTitle = getCleanTitle(post.title.rendered);
+                                return (
+                                    <SelectItem key={post.id} value={cleanTitle}>
+                                        {cleanTitle}
+                                    </SelectItem>
+                                );
+                            })}
                             {posts.length === 0 && !loadingPosts && (
                                 <SelectItem value="none" disabled>Nenhum artigo encontrado</SelectItem>
                             )}
@@ -196,9 +206,7 @@ export function LeadForm() {
                                 htmlFor="isOver18"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-gray-700"
                             >
-                                Sou maior de 18 anos e concordo com os<a href="https://bemzao.com/termos-de-uso/" target="_blank" rel="noopener noreferrer"
-                                    className="text-[var(--ast-color-0)]"
-                                > termos de uso</a>.
+                                Sou maior de 18 anos e concordo com os termos.
                             </label>
                             <p className="text-xs text-muted-foreground">
                                 É necessário ser maior de idade para participar.
