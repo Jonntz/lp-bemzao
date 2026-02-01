@@ -122,7 +122,7 @@ export function LeadForm() {
 
     return (
         <div className="w-full">
-            <div className="mb-6">
+            <div className="mb-6 text-center uppercase">
                 <div className="text-2xl font-bold text-[var(--ast-color-0)]">
                     Garanta sua doação agora
                 </div>
@@ -239,7 +239,9 @@ export function LeadForm() {
                                 Sou maior de 18 anos e concordo com os termos.
                             </label>
                             <p className="text-xs text-muted-foreground">
-                                É necessário ser maior de idade para participar.
+                                Sou maior de 18 anos e concordo com os<a href="https://bemzao.com/termos-de-uso/" target="_blank" rel="noopener noreferrer"
+                                    className="text-[var(--ast-color-0)]"
+                                > termos de uso</a>.
                             </p>
                         </div>
                     </div>
