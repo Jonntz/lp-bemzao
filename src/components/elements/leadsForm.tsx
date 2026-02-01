@@ -103,7 +103,7 @@ export function LeadForm() {
 
     return (
         <div className="w-full">
-            <div className="mb-6">
+            <div className="mb-6 text-center uppercase">
                 <div className="text-2xl font-bold text-[var(--ast-color-0)]">
                     Garanta sua doação agora
                 </div>
@@ -196,7 +196,9 @@ export function LeadForm() {
                                 htmlFor="isOver18"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-gray-700"
                             >
-                                Sou maior de 18 anos e concordo com os termos.
+                                Sou maior de 18 anos e concordo com os<a href="https://bemzao.com/termos-de-uso/" target="_blank" rel="noopener noreferrer"
+                                    className="text-[var(--ast-color-0)]"
+                                > termos de uso</a>.
                             </label>
                             <p className="text-xs text-muted-foreground">
                                 É necessário ser maior de idade para participar.
@@ -215,7 +217,6 @@ export function LeadForm() {
                 </Button>
             </form>
 
-            {/* --- COMPONENTE SEPARADO AQUI --- */}
             <SuccessModal
                 isOpen={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}

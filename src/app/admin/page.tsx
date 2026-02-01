@@ -83,12 +83,18 @@ export default function AdminPage() {
 
         // Filtro de Campanha
         if (campaignFilter && campaignFilter !== "all") {
-            result = result.filter(lead => lead.wordpressPostId === campaignFilter);
+            result = result.filter(lead => {
+                // Se o lead não tem campanha vinculada, ignora
+                if (!lead.wordpressPostId) return false;
+
+                // Converte ambos para string e compara de forma segura
+                return String(lead.wordpressPostId).trim() === String(campaignFilter).trim();
+            });
         }
 
         // Filtro de Telefone
         if (phoneFilter) {
-            const search = phoneFilter.replace(/\D/g, ""); // Remove formatação (parenteses, traços) para busca
+            const search = phoneFilter.replace(/\D/g, ""); // Remove formatação para busca
             result = result.filter(lead => {
                 const cleanPhone = lead.phone.replace(/\D/g, "");
                 return cleanPhone.includes(search);
