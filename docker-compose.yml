@@ -9,6 +9,7 @@ services:
     restart: always
     ports:
       - "3000:3000"
+      - "5555:5555"
     environment:
       DATABASE_URL: "mysql://admin:password123@db:3306/bemzao_db"
       ADMIN_PASSWORD: "PauloBemzao123" # Defina sua senha de acesso ao painel
