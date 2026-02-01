@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { SuccessModal } from "./successModal";
+import { SuccessModal } from "./successModal"; // Verifique se o nome do arquivo é SuccessModal ou successModal
 
 const WORDPRESS_API_URL = "https://bemzao.com/wp-json/wp/v2/posts";
 
@@ -28,10 +28,10 @@ const formSchema = z.object({
     lastName: z.string().min(2, "Mínimo de 2 caracteres"),
     email: z.string().email("E-mail inválido"),
     phone: z.string().min(14, "Telefone incompleto").max(15, "Telefone inválido"),
+    // O campo agora é tratado como string (o nome da campanha)
     wordpressPostId: z.string().optional(),
 
-    // CORREÇÃO AQUI: Trocamos z.literal por z.boolean().refine()
-    // Isso evita o erro de tipagem e garante que só passa se for true.
+    // Validação estrita para o checkbox de maioridade
     isOver18: z.boolean().refine((val) => val === true, {
         message: "Você precisa confirmar que é maior de 18 anos.",
     }),
@@ -48,6 +48,7 @@ export function LeadForm() {
         register,
         handleSubmit,
         setValue,
+        watch,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormData>({
@@ -58,6 +59,9 @@ export function LeadForm() {
             isOver18: false,
         }
     });
+
+    // Monitora o valor em tempo real para garantir que o Select acompanhe o formulário
+    const selectedCampaign = watch("wordpressPostId");
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -84,16 +88,22 @@ export function LeadForm() {
             .replace(/(-\d{4})(\d+?)/, '$1');
     }
 
+    // Decodifica entidades HTML (Ex: 'Campanha &#038; Ação' vira 'Campanha & Ação')
     const getCleanTitle = (html: string) => {
+        if (!html) return "";
         const div = document.createElement("div");
         div.innerHTML = html;
         return div.textContent || div.innerText || "";
     };
 
     const onSubmit = async (data: FormData) => {
+        // Log para conferência no console do navegador antes de enviar
+        console.log("Enviando formulário:", data);
+
         try {
             const res = await fetch('/api/leads', {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
             const responseData = await res.json();
@@ -101,6 +111,8 @@ export function LeadForm() {
             if (!res.ok) throw new Error(responseData.message || "Erro desconhecido");
 
             reset();
+            // Reseta também o select visualmente
+            setValue("wordpressPostId", "");
             setShowSuccessModal(true);
 
         } catch (error: any) {
@@ -120,6 +132,11 @@ export function LeadForm() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {/* GARANTIA 1: Input Hidden registrado.
+                    Isso garante que o react-hook-form saiba que esse campo existe no submit.
+                */}
+                <input type="hidden" {...register("wordpressPostId")} />
+
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="firstName">Nome</Label>
@@ -173,16 +190,29 @@ export function LeadForm() {
 
                 <div className="space-y-2">
                     <Label>Interesse em qual campanha? (Opcional)</Label>
-                    <Select onValueChange={(val) => setValue("wordpressPostId", val)}>
+                    <Select
+                        value={selectedCampaign || ""}
+                        onValueChange={(val) => {
+                            // GARANTIA 2: Atualização forçada do valor no formulário
+                            setValue("wordpressPostId", val, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                                shouldTouch: true
+                            });
+                        }}
+                    >
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder={loadingPosts ? "Carregando campanhas..." : "Selecione uma campanha..."} />
                         </SelectTrigger>
                         <SelectContent>
                             {posts.map((post) => {
+                                // GARANTIA 3: Usamos o Título limpo como VALOR do item
                                 const cleanTitle = getCleanTitle(post.title.rendered);
+                                const valueToSend = cleanTitle || `Campanha #${post.id}`; // Fallback de segurança
+
                                 return (
-                                    <SelectItem key={post.id} value={cleanTitle}>
-                                        {cleanTitle}
+                                    <SelectItem key={post.id} value={valueToSend}>
+                                        {valueToSend}
                                     </SelectItem>
                                 );
                             })}
