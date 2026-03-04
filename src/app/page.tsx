@@ -7,7 +7,7 @@ export default function Home() {
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
         {/* LOGO */}
         <Image
-          src="/cropped-cropped-Bemzao.webp" // Caminho correto (começando com /)
+          src="/logo_elodobem.webp" // Caminho correto (começando com /)
           alt="Logo Bemzão"
           width={415}
           height={40}
